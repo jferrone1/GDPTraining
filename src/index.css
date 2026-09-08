@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-handwriting {
+    font-family: 'Caveat', cursive;
+  }
+  .font-mono-doc {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .font-sans-doc {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+.paper-sheet {
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+}
+
+.ruled-lines {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    #f1f5f9 31px,
+    #f1f5f9 32px
+  );
+}
+
+.graph-lines {
+  background-image: 
+    linear-gradient(to right, #f1f5f9 1px, transparent 1px),
+    linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@keyframes sectionEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-section-enter {
+  animation: sectionEntrance 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Remix Good Documentation Practices (GDP) Training 2",
+  "description": "Comprehensive Good Documentation Practices (GDP) training module covering ALCOA+ principles, compliant record entries and corrections, interactive visual audits, and a regulatory compliance quiz.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
