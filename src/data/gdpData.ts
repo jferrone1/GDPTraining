@@ -9,7 +9,7 @@ export const ALCOA_PRINCIPLES: AlcoaPrinciple[] = [
     regulatoryRequirement: '21 CFR § 211.194(a)(7) requires initials or signatures of the person who performs each test, along with the date tests are performed.',
     practicalDo: 'Sign or initial in indelible ink immediately upon completing your task using your registered signature or authorized electronic credential.',
     practicalDont: 'Never share passwords, never initial or sign on behalf of a colleague (ghost/proxy signing), and never allow someone else to log in with your credentials.',
-    inspectionRisk: 'Inspectors review audit trails and signature logs. Discrepancies between card access logs and document signatures trigger 483 warning letters.',
+    inspectionRisk: 'Inspectors review audit trails and signature logs. Discrepancies between card access logs and document signatures trigger Form 483 warning letters for Falsification of Authorship (an official FDA citation notifying company management of observed regulatory non-compliance).',
     realWorldExample: 'Technician A left for lunch while a 4-hour bioreactor sampling occurred. Technician B took the sample and signed Technician A’s initials. This is a severe data integrity citation.',
     citation: 'FDA 21 CFR Part 211 / MHRA GXP Data Integrity Guidance § 4.1'
   },
@@ -34,7 +34,7 @@ export const ALCOA_PRINCIPLES: AlcoaPrinciple[] = [
     practicalDo: 'Record each parameter immediately after reading the instrument or executing the physical step, with the exact current date and time.',
     practicalDont: 'Never pre-document (signing before finishing) and never back-date (entering yesterday’s date). Never postpone documentation until end-of-shift from memory.',
     inspectionRisk: 'Discovered pre-completed signatures or timestamps that conflict with automated SCADA/historian logs demonstrate falsification of records.',
-    realWorldExample: 'An operator filled out the next 3 hourly temperature checks in advance before going on a break. An unexpected facility audit took place 10 minutes later, resulting in an immediate FDA Form 483.',
+    realWorldExample: 'An operator filled out the next 3 hourly temperature checks in advance before going on a break. An unexpected facility audit took place 10 minutes later, resulting in an immediate FDA Form 483 (the official written citation issued by FDA investigators documenting observed regulatory violations).',
     citation: '21 CFR § 211.188 / PIC/S PI 041-1 § 8.4'
   },
   {
@@ -967,7 +967,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
         },
         isCorrect: false,
         explanation: 'Incorrect! This is backdating. Even if the work occurred at 08:30, writing that you documented it at 08:30 when it is currently 14:00 is falsification.',
-        flawAnalysis: 'Violates Contemporaneous (ALCOA). If an automated system or building badge record shows you were in containment at 08:30, an investigator will issue a 483 warning.'
+        flawAnalysis: 'Violates Contemporaneous (ALCOA). If an automated system or building badge record shows you were in containment at 08:30, an investigator will issue a Form 483 warning letter for Backdating (an official FDA citation notifying management of observed regulatory non-compliance).'
       },
       {
         id: 'opt-4b',
@@ -1054,7 +1054,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
         },
         isCorrect: false,
         explanation: 'Incorrect! Erasable gel pens (such as heat-erasing pens) become invisible when subjected to heat or friction, which can completely erase documents during archiving or transport.',
-        flawAnalysis: 'Major citation in FDA 483 letters: erasable pens violate indelible record requirements.'
+        flawAnalysis: 'Major citation in FDA Form 483 warning letters: erasable pens violate indelible record requirements (the official FDA notice of inspectional observations citing regulatory violations).'
       },
       {
         id: 'opt-5c',
@@ -1185,7 +1185,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
         },
         isCorrect: false,
         explanation: 'Incorrect! Writing on paper towels or scrap paper and destroying them is a critical violation of the "Original" principle.',
-        flawAnalysis: 'Inspectors search trash cans and recycling bins for scrap paper. Finding discarded raw data results in immediate 483 warning letters.'
+        flawAnalysis: 'Inspectors search trash cans and recycling bins for scrap paper. Finding discarded raw data results in immediate Form 483 warning letters for Uncontrolled Records and Data Destruction (an official FDA notice citing critical regulatory non-compliance).'
       },
       {
         id: 'opt-7b',
@@ -1497,7 +1497,7 @@ export const ACRONYMS: AcronymItem[] = [
     fullName: 'FDA Inspectional Observations (Form FDA 483)',
     category: 'quality',
     definition: 'The official document presented to company management at the conclusion of an FDA inspection listing conditions that violate GMP.',
-    floorContext: 'Common 483 findings include erasable pens, missing signatures, post-it notes, backdating, and white-out.'
+    floorContext: 'Common Form 483 inspection observations include erasable pens, missing signatures, post-it notes, backdating, and white-out.'
   },
   {
     id: 'acr-wl',
@@ -1940,7 +1940,7 @@ export const NEW_HIRE_SHIFT_STEPS: NewHireShiftStep[] = [
       'Never pre-sign steps before work is executed, even if you know you will do them in 5 minutes.'
     ],
     floorAnalogy: 'Signing someone else’s initials on a production record is legally identical to signing their name on a bank loan or police affidavit—it is forgery.',
-    commonTrap: 'Believing "I am just helping out a teammate who has to catch their ride." In an FDA or ISO audit, proxy signing is a severe 483 finding that frequently leads to termination.',
+    commonTrap: 'Believing "I am just helping out a teammate who has to catch their ride." In an FDA or ISO audit, proxy signing triggers a severe Form 483 warning letter for Falsification of Authorship (an official FDA citation notifying management of regulatory violations) that frequently leads to termination.',
     badge: 'Signature Integrity',
     diabetesContext: 'Sterile lancets puncture the skin of diabetics multiple times daily. If sanitization steps are falsely signed without verification, microbial contamination could cause serious infections.',
     interactiveChallenge: {

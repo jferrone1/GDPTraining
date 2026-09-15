@@ -184,7 +184,7 @@ export const CorrectionsLab: React.FC<Props> = ({ onComplete, onNextSection }) =
 
             <div className="bg-red-50/70 p-3.5 rounded-lg border border-red-100 text-xs text-red-900 leading-relaxed">
               <strong className="font-bold block mb-1">Inspector Risk Assessment:</strong>
-              These prohibited techniques result in regulatory citations (FDA Form 483 or Warning Letters) as they compromise document transparency.
+              These prohibited techniques result in regulatory citations—such as an FDA Form 483 (the official written citation issued by FDA investigators documenting observed regulatory violations) or formal Warning Letters—as they compromise document transparency.
             </div>
           </div>
         </div>

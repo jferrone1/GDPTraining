@@ -196,7 +196,7 @@ export const OverviewModule: React.FC<Props> = ({
                 </div>
                 <h4 className="font-bold text-slate-900 text-base">Legal &amp; Regulatory Standing</h4>
                 <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-                  FDA 483 inspection observations, Warning Letters, import bans, and consent decrees routinely stem from sloppy corrections, backdating, pencil entries, or missing raw data.
+                  FDA Form 483 inspection observations (official written notices issued to management citing regulatory violations), formal Warning Letters, import bans, and consent decrees routinely stem from sloppy corrections, backdating, pencil entries, or missing raw data.
                 </p>
               </div>
             </div>
@@ -248,7 +248,7 @@ export const OverviewModule: React.FC<Props> = ({
               <AlertCircle className="w-5 h-5 text-amber-800 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-950 space-y-1">
                 <span className="font-bold text-sm block text-amber-900">
-                  The 5 Most Frequent FDA 483 GDP Inspection Findings:
+                  The 5 Most Frequent FDA Form 483 GDP Inspection Findings (Official Citations for Non-Compliance):
                 </span>
                 <ul className="list-disc pl-4 space-y-1 text-slate-700">
                   <li><strong>Correction Fluid / Opaque Tape:</strong> Liquid paper used to cover unverified or out-of-specification values.</li>

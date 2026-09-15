@@ -264,7 +264,7 @@ export const ReferenceDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
             {activeTab === 'red_flags' && (
               <div className="space-y-3">
                 <div className="text-xs text-slate-500">
-                  Practices that immediately trigger regulatory 483 audit observations:
+                  Practices that immediately trigger regulatory FDA Form 483 inspection observations (official notices of regulatory violations):
                 </div>
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs space-y-2 text-rose-950">
                   <div className="flex items-center gap-1.5 font-bold text-rose-900">

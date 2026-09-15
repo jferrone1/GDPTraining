@@ -37,8 +37,8 @@ export const VisualSnippetRenderer: React.FC<Props> = ({
         <span className="font-semibold uppercase tracking-wider text-[11px] truncate max-w-[80%]">
           {snippet.fieldLabel}
         </span>
-        <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono">
-          GxP Form #211
+        <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono">
+          GxP Batch Record (21 CFR Part 211)
         </span>
       </div>
 

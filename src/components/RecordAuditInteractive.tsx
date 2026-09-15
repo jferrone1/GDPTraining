@@ -134,7 +134,7 @@ export const RecordAuditInteractive: React.FC<Props> = ({ onComplete, onNextSect
         <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 text-xs text-blue-950 flex items-center gap-2.5">
           <Eye className="w-4 h-4 text-blue-700 shrink-0" />
           <span>
-            <strong>Auditor Instructions:</strong> Review the document specimen on the left side of each card. Select your diagnosis from the dropdown menu on the right (under the "GxP Form #" badge) and click <strong>Submit Assessment</strong>.
+            <strong>Auditor Instructions:</strong> Review the document specimen on the left side of each card. Select your diagnosis from the dropdown menu on the right (under the "GxP Batch Record" badge) and click <strong>Submit Assessment</strong>.
           </span>
         </div>
 
@@ -161,7 +161,7 @@ export const RecordAuditInteractive: React.FC<Props> = ({ onComplete, onNextSect
                     : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
-                {/* Card Top Bar with Title and "GxP Form #" box */}
+                {/* Card Top Bar with Title and "GxP Batch Record" box */}
                 <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200 text-xs font-mono">
                   <div className="flex items-center gap-2">
                     <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
@@ -196,12 +196,12 @@ export const RecordAuditInteractive: React.FC<Props> = ({ onComplete, onNextSect
 
                     {/* Official GxP Form badge */}
                     <span className="text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 font-mono font-medium">
-                      GxP Form #211
+                      GxP Batch Record (21 CFR Part 211)
                     </span>
                   </div>
                 </div>
 
-                {/* Card Body: Specimen on Left, Drop-down & Feedback on Right (Under GxP Form # box) */}
+                {/* Card Body: Specimen on Left, Drop-down & Feedback on Right (Under GxP Batch Record box) */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-3.5 items-start">
                   {/* Left Specimen Column (5 cols on lg) */}
                   <div className="lg:col-span-5 flex flex-col justify-center">
@@ -215,7 +215,7 @@ export const RecordAuditInteractive: React.FC<Props> = ({ onComplete, onNextSect
                     />
                   </div>
 
-                  {/* Right Column: Dropdown, Actions, and Regulatory Evaluation (7 cols on lg, directly under GxP Form #) */}
+                  {/* Right Column: Dropdown, Actions, and Regulatory Evaluation (7 cols on lg, directly under GxP Batch Record) */}
                   <div className="lg:col-span-7 space-y-3 bg-slate-50/80 p-3.5 sm:p-4 rounded-xl border border-slate-200">
                     <div className="flex items-center justify-between">
                       <label 
