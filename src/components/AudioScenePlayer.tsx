@@ -299,11 +299,11 @@ export const AudioScenePlayer: React.FC<Props> = ({
   // Scene Storyboard Images (GDP 1-5: Gdp1.jpg, Gdp2.jpg, Gdp3.jpg, Gdp4.jpg, GDP5.jpeg)
   const [storedSceneImages, setStoredSceneImages] = useState<Record<string, StoredSceneImage>>({});
   const [sceneImageUrls, setSceneImageUrls] = useState<Record<string, string>>({
-    GDP1: '/images/Gdp1.jpg',
-    GDP2: '/images/Gdp2.jpg',
-    GDP3: '/images/Gdp3.jpg',
-    GDP4: '/images/Gdp4.jpg',
-    GDP5: '/images/GDP5.jpeg',
+    GDP1: '/images/GDP1.jpg?v=2',
+    GDP2: '/images/GDP2.jpg?v=2',
+    GDP3: '/images/GDP3.jpg?v=2',
+    GDP4: '/images/GDP4.jpg?v=2',
+    GDP5: '/images/GDP5.jpg?v=2',
   });
   const [showImageManager, setShowImageManager] = useState<boolean>(false);
   const [showScriptDrawer, setShowScriptDrawer] = useState<boolean>(false);
@@ -356,11 +356,11 @@ export const AudioScenePlayer: React.FC<Props> = ({
         setStoredSceneImages(imgs);
 
         const urls: Record<string, string> = {
-          GDP1: '/images/Gdp1.jpg',
-          GDP2: '/images/Gdp2.jpg',
-          GDP3: '/images/Gdp3.jpg',
-          GDP4: '/images/Gdp4.jpg',
-          GDP5: '/images/GDP5.jpeg',
+          GDP1: '/images/GDP1.jpg?v=2',
+          GDP2: '/images/GDP2.jpg?v=2',
+          GDP3: '/images/GDP3.jpg?v=2',
+          GDP4: '/images/GDP4.jpg?v=2',
+          GDP5: '/images/GDP5.jpg?v=2',
         };
 
         // If user uploaded custom files, create ObjectURLs to override the defaults
@@ -522,11 +522,11 @@ export const AudioScenePlayer: React.FC<Props> = ({
     });
     setStoredSceneImages({});
     setSceneImageUrls({
-      GDP1: '/images/GDP1.jpg',
-      GDP2: '/images/GDP2.jpg',
-      GDP3: '/images/GDP3.jpg',
-      GDP4: '/images/GDP4.jpg',
-      GDP5: '/images/GDP5.jpg',
+      GDP1: '/images/GDP1.jpg?v=2',
+      GDP2: '/images/GDP2.jpg?v=2',
+      GDP3: '/images/GDP3.jpg?v=2',
+      GDP4: '/images/GDP4.jpg?v=2',
+      GDP5: '/images/GDP5.jpg?v=2',
     });
     setAudioNotice('Reset scene images to default slide images.');
     setTimeout(() => setAudioNotice(null), 4000);
@@ -846,8 +846,8 @@ export const AudioScenePlayer: React.FC<Props> = ({
   // 6 official studio master recordings (Lines 1, 3, 5, 7, 9, 11)
   const officialStudioClipsCount = 6;
 
-  // Slide URL calculation: direct mapping to slide 1..5
-  const activeSlideUrl = sceneImageUrls[activeSlideConfig.id] || `/images/${activeSlideConfig.expectedFilename}`;
+  // Slide URL calculation: direct mapping to slide 1..5 with cache buster
+  const activeSlideUrl = sceneImageUrls[activeSlideConfig.id] || `/images/${activeSlideConfig.expectedFilename}?v=2`;
 
   return (
     <div 

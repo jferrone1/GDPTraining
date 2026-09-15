@@ -148,10 +148,18 @@ export const StoryboardScene: React.FC<Props> = ({
             referrerPolicy="no-referrer"
             onError={(e) => {
               const target = e.currentTarget;
-              if (target.src.endsWith('.jpg')) {
-                target.src = target.src.replace(/\.jpg$/, '.jpeg');
-              } else if (target.src.endsWith('.jpeg')) {
-                target.src = target.src.replace(/\.jpeg$/, '.jpg');
+              const url = new URL(target.src, window.location.href);
+              if (url.pathname.endsWith('.jpg')) {
+                url.pathname = url.pathname.replace(/\.jpg$/, '.jpeg');
+                target.src = url.toString();
+              } else if (url.pathname.endsWith('.jpeg')) {
+                url.pathname = url.pathname.replace(/\.jpeg$/, '.jpg');
+                if (!url.searchParams.has('tried_fallback')) {
+                  url.searchParams.set('tried_fallback', '1');
+                  target.src = url.toString();
+                } else {
+                  setHasImageError(true);
+                }
               } else {
                 setHasImageError(true);
               }
