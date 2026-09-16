@@ -15,7 +15,6 @@ import {
   Volume1, 
   Mic, 
   Headphones, 
-  Upload, 
   Sparkles, 
   Film, 
   Music,
@@ -27,16 +26,13 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { StoryboardScene, SCENE_SLIDES_CONFIG } from './StoryboardScene';
-import { SceneImageManager } from './SceneImageManager';
 import { 
   getAllSceneImages, 
-  saveSceneImage, 
-  clearAllSceneImages, 
-  identifyImageSlot, 
-  SceneImageKey, 
-  StoredSceneImage, 
-  ORDERED_IMAGE_KEYS 
+  saveSceneImage,
+  identifyImageSlot,
+  SceneImageKey
 } from '../utils/imageStorage';
+import { PERMANENT_SCENE_IMAGES } from '../data/permanentImages';
 
 interface Shot {
   id: string;
@@ -296,16 +292,15 @@ export const AudioScenePlayer: React.FC<Props> = ({
   const [pencilInLocker, setPencilInLocker] = useState(isPencilAlreadyStashed);
   const [isCompact, setIsCompact] = useState<boolean>(true);
 
-  // Scene Storyboard Images (GDP 1-5: Gdp1.jpg, Gdp2.jpg, Gdp3.jpg, Gdp4.jpg, GDP5.jpeg)
-  const [storedSceneImages, setStoredSceneImages] = useState<Record<string, StoredSceneImage>>({});
+  // Scene Storyboard Images (GDP 1-5 static slide assets)
   const [sceneImageUrls, setSceneImageUrls] = useState<Record<string, string>>({
-    GDP1: '/images/GDP1.jpg?v=2',
-    GDP2: '/images/GDP2.jpg?v=2',
-    GDP3: '/images/GDP3.jpg?v=2',
-    GDP4: '/images/GDP4.jpg?v=2',
-    GDP5: '/images/GDP5.jpg?v=2',
+    GDP1: PERMANENT_SCENE_IMAGES.GDP1 || '/images/GDP1.jpeg',
+    GDP2: PERMANENT_SCENE_IMAGES.GDP2 || '/images/GDP2.jpeg',
+    GDP3: PERMANENT_SCENE_IMAGES.GDP3 || '/images/GDP3.jpeg',
+    GDP4: PERMANENT_SCENE_IMAGES.GDP4 || '/images/GDP4.jpeg',
+    GDP5: PERMANENT_SCENE_IMAGES.GDP5 || '/images/GDP5.jpeg',
   });
-  const [showImageManager, setShowImageManager] = useState<boolean>(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [showScriptDrawer, setShowScriptDrawer] = useState<boolean>(false);
 
   // Audio Playback state
@@ -337,61 +332,120 @@ export const AudioScenePlayer: React.FC<Props> = ({
   audioEngineRef.current = audioEngine;
   isMutedRef.current = isMuted;
 
-  // Load stored scene images (GDP 1-5) on mount & purge any legacy client-side audio database
-  useEffect(() => {
-    let isMounted = true;
-    async function loadResources() {
+  // Sync image blob to server disk in background
+  const syncImageBlobToServer = (key: SceneImageKey, blob: Blob) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
       try {
-        // Clear any lingering custom audio DB to ensure 100% training audio integrity
+        await fetch('/api/sync-scene-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, dataUrl }),
+        });
+      } catch {
+        // silent background sync
+      }
+    };
+    reader.readAsDataURL(blob);
+  };
+
+  // Seamless drag-and-drop & file selection handler for GDP image files
+  const handleDropFiles = async (files: FileList | File[]) => {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+
+    const updatedUrls: Record<string, string> = {};
+    const unassigned: File[] = [];
+
+    // First pass: match by filename pattern (e.g. GDP1, GDP2, slide1, 1.jpeg)
+    for (const file of list) {
+      const slot = identifyImageSlot(file.name);
+      if (slot && !updatedUrls[slot]) {
         try {
-          if (typeof window !== 'undefined' && window.indexedDB) {
-            window.indexedDB.deleteDatabase('gdp-training-audio');
-          }
-        } catch {
-          // ignore
+          await saveSceneImage(slot, file, file.name);
+          const objUrl = URL.createObjectURL(file);
+          updatedUrls[slot] = objUrl;
+          syncImageBlobToServer(slot, file);
+        } catch (err) {
+          console.warn('Error saving dropped image:', err);
         }
-
-        const imgs = await getAllSceneImages();
-        if (!isMounted) return;
-        setStoredSceneImages(imgs);
-
-        const urls: Record<string, string> = {
-          GDP1: '/images/GDP1.jpg?v=2',
-          GDP2: '/images/GDP2.jpg?v=2',
-          GDP3: '/images/GDP3.jpg?v=2',
-          GDP4: '/images/GDP4.jpg?v=2',
-          GDP5: '/images/GDP5.jpg?v=2',
-        };
-
-        // If user uploaded custom files, create ObjectURLs to override the defaults
-        for (const [k, img] of Object.entries(imgs)) {
-          if (img && img.blob) {
-            urls[k] = URL.createObjectURL(img.blob);
-          }
-        }
-
-        // Fallback for GDP5 if not provided: mirror GDP4
-        if (!urls.GDP5 && urls.GDP4) {
-          urls.GDP5 = urls.GDP4;
-        }
-
-        if (isMounted) {
-          setSceneImageUrls(urls);
-        }
-      } catch (err) {
-        console.warn('Could not read stored scene resources:', err);
+      } else {
+        unassigned.push(file);
       }
     }
-    loadResources();
+
+    // Second pass: fill any remaining empty slots in order
+    const allSlots: SceneImageKey[] = ['GDP1', 'GDP2', 'GDP3', 'GDP4', 'GDP5'];
+    const emptySlots = allSlots.filter(s => !updatedUrls[s] && !sceneImageUrls[s]?.startsWith('blob:'));
+    unassigned.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+    for (let i = 0; i < Math.min(unassigned.length, emptySlots.length); i++) {
+      const slot = emptySlots[i];
+      const file = unassigned[i];
+      try {
+        await saveSceneImage(slot, file, file.name);
+        const objUrl = URL.createObjectURL(file);
+        updatedUrls[slot] = objUrl;
+        syncImageBlobToServer(slot, file);
+      } catch (err) {
+        console.warn('Error saving unassigned file:', err);
+      }
+    }
+
+    if (Object.keys(updatedUrls).length > 0) {
+      setSceneImageUrls(prev => ({ ...prev, ...updatedUrls }));
+    }
+  };
+
+  // Load persisted scene images from IndexedDB on mount & sync to disk + paste handler
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAndSyncImages() {
+      try {
+        if (typeof window !== 'undefined' && window.indexedDB) {
+          try {
+            window.indexedDB.deleteDatabase('gdp-training-audio');
+          } catch {
+            // ignore
+          }
+
+          const imgs = await getAllSceneImages();
+          const entries = Object.entries(imgs);
+          if (entries.length > 0) {
+            const urls: Record<string, string> = {};
+            for (const [key, item] of entries) {
+              if (item && item.blob) {
+                const objUrl = URL.createObjectURL(item.blob);
+                urls[key] = objUrl;
+                syncImageBlobToServer(key as SceneImageKey, item.blob);
+              }
+            }
+            if (isMounted && Object.keys(urls).length > 0) {
+              setSceneImageUrls(prev => ({ ...prev, ...urls }));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Scene image loading:', err);
+      }
+    }
+    loadAndSyncImages();
+
+    // Clipboard paste handler (Ctrl+V / Cmd+V to paste GDP slide images)
+    const handlePaste = (e: ClipboardEvent) => {
+      if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+        handleDropFiles(e.clipboardData.files);
+      }
+    };
+    window.addEventListener('paste', handlePaste);
 
     return () => {
       isMounted = false;
+      window.removeEventListener('paste', handlePaste);
       if (advanceTimeoutRef.current) {
         clearTimeout(advanceTimeoutRef.current);
       }
-      Object.values(sceneImageUrls).forEach((url: string) => {
-        if (url && url.startsWith('blob:')) URL.revokeObjectURL(url);
-      });
     };
   }, []);
 
@@ -448,89 +502,6 @@ export const AudioScenePlayer: React.FC<Props> = ({
       setPencilInLocker(true);
     }
   }, [isPencilAlreadyStashed]);
-
-  // Upload single scene image slot (GDP1..GDP5)
-  const handleUploadSingleSceneImage = async (slot: SceneImageKey, file: File) => {
-    await saveSceneImage(slot, file);
-    const newImgs = await getAllSceneImages();
-    setStoredSceneImages(newImgs);
-
-    const newUrls = { ...sceneImageUrls };
-    if (newUrls[slot] && newUrls[slot].startsWith('blob:')) {
-      URL.revokeObjectURL(newUrls[slot]);
-    }
-    newUrls[slot] = URL.createObjectURL(file);
-    if (slot === 'GDP4' && !newImgs.GDP5) {
-      newUrls.GDP5 = newUrls.GDP4;
-    }
-    setSceneImageUrls(newUrls);
-
-    setAudioNotice(`Imported "${file.name}" for Slide ${slot}!`);
-    setTimeout(() => setAudioNotice(null), 4000);
-  };
-
-  // Upload batch scene images (GDP 1-5)
-  const handleIncomingImageFiles = async (files: FileList | File[]) => {
-    const fileArr = Array.from(files);
-    let matchedCount = 0;
-
-    // If 4 or 5 files and no explicit GDP pattern, match in alphabetical order
-    if ((fileArr.length === 5 || fileArr.length === 4) && fileArr.every(f => !identifyImageSlot(f.name))) {
-      fileArr.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-      for (let i = 0; i < Math.min(fileArr.length, ORDERED_IMAGE_KEYS.length); i++) {
-        await saveSceneImage(ORDERED_IMAGE_KEYS[i], fileArr[i]);
-        matchedCount++;
-      }
-    } else {
-      for (const file of fileArr) {
-        const slot = identifyImageSlot(file.name);
-        if (slot) {
-          await saveSceneImage(slot, file);
-          matchedCount++;
-        }
-      }
-    }
-
-    const updatedImgs = await getAllSceneImages();
-    setStoredSceneImages(updatedImgs);
-
-    const newUrls = { ...sceneImageUrls };
-    for (const [key, record] of Object.entries(updatedImgs)) {
-      if (newUrls[key] && newUrls[key].startsWith('blob:')) {
-        URL.revokeObjectURL(newUrls[key]);
-      }
-      newUrls[key] = URL.createObjectURL(record.blob);
-    }
-    if (newUrls.GDP4 && !updatedImgs.GDP5) {
-      newUrls.GDP5 = newUrls.GDP4;
-    }
-    setSceneImageUrls(newUrls);
-
-    if (matchedCount > 0) {
-      setAudioNotice(`Imported ${matchedCount} scene slide images successfully!`);
-    } else {
-      setAudioNotice('Could not identify image slot names. Expected GDP1.jpg, GDP2.jpg, GDP3.jpg, GDP4.jpg / GSP4.jpg, GDP5.jpg.');
-    }
-    setTimeout(() => setAudioNotice(null), 5000);
-  };
-
-  // Clear all stored scene images
-  const handleClearAllSceneImages = async () => {
-    await clearAllSceneImages();
-    Object.values(sceneImageUrls).forEach((url: string) => {
-      if (url && url.startsWith('blob:')) URL.revokeObjectURL(url);
-    });
-    setStoredSceneImages({});
-    setSceneImageUrls({
-      GDP1: '/images/GDP1.jpg?v=2',
-      GDP2: '/images/GDP2.jpg?v=2',
-      GDP3: '/images/GDP3.jpg?v=2',
-      GDP4: '/images/GDP4.jpg?v=2',
-      GDP5: '/images/GDP5.jpg?v=2',
-    });
-    setAudioNotice('Reset scene images to default slide images.');
-    setTimeout(() => setAudioNotice(null), 4000);
-  };
 
   // Helper to get active voice for Speech Synth
   const getSpeakerVoice = (speaker: 'Grace' | 'Susan'): { voice: SpeechSynthesisVoice | null; pitch: number } => {
@@ -854,7 +825,32 @@ export const AudioScenePlayer: React.FC<Props> = ({
       className={`bg-slate-950 rounded-2xl border-2 border-slate-800 shadow-xl overflow-hidden text-white flex flex-col relative transition-all duration-300 ${
         isCompact ? 'max-w-3xl mx-auto' : 'w-full'
       }`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleDropFiles(e.dataTransfer.files);
+        }
+      }}
     >
+      {/* Subtle Drag-and-Drop Dropzone Overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-50 bg-blue-950/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 border-2 border-dashed border-blue-400 rounded-2xl pointer-events-none">
+          <p className="text-white font-bold text-base">Drop GDP Scene Images Here</p>
+          <p className="text-blue-300 text-xs mt-1">Supports GDP1.jpeg through GDP5.jpeg</p>
+        </div>
+      )}
       {/* Top Header Bar with Engine Switcher and View Settings */}
       <div className="bg-slate-900/95 px-3 sm:px-4 py-2 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
         
@@ -910,22 +906,6 @@ export const AudioScenePlayer: React.FC<Props> = ({
             <span className="hidden sm:inline">Official Audio (Locked)</span>
             <span className="sm:hidden">Audio Locked</span>
           </div>
-
-          {/* Scene Storyboard Slides Manager Button */}
-          <button
-            type="button"
-            onClick={() => setShowImageManager(!showImageManager)}
-            className={`px-2.5 py-1 rounded-md font-mono text-[11px] font-bold border flex items-center gap-1.5 transition-all cursor-pointer ${
-              showImageManager
-                ? 'bg-blue-600 text-white border-blue-500 shadow-xs'
-                : 'bg-slate-900 hover:bg-slate-800 text-blue-300 border-slate-800'
-            }`}
-            title="Manage Scene Storyboard JPG Slides (GDP 1–5)"
-          >
-            <Film className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden sm:inline">Scene Slides (JPG)</span>
-            <span className="sm:hidden">Slides</span>
-          </button>
 
           {/* Synthesizer Voice Settings Button */}
           {audioEngine === 'synthesizer' && (
@@ -1079,19 +1059,6 @@ export const AudioScenePlayer: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Scene Storyboard Slides Drawer */}
-      <SceneImageManager
-        isOpen={showImageManager}
-        onClose={() => setShowImageManager(false)}
-        storedImages={storedSceneImages}
-        imageUrls={sceneImageUrls}
-        onUploadSingle={handleUploadSingleSceneImage}
-        onUploadBatch={handleIncomingImageFiles}
-        onClearAll={handleClearAllSceneImages}
-        onSelectSlide={handleJumpToSlide}
-        currentSlideIndex={activeSlideIndex}
-      />
-
       {/* Main Visual Stage & Subtitles (Unified Presentation Card) */}
       <div className="relative w-full bg-slate-950/80 flex flex-col items-center justify-center p-2 sm:p-3">
         <div className={`relative rounded-xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900 flex flex-col transition-all duration-300 ${
@@ -1103,16 +1070,14 @@ export const AudioScenePlayer: React.FC<Props> = ({
               ? 'h-[190px] sm:h-[230px] md:h-[260px] aspect-video w-full max-w-full mx-auto' 
               : 'aspect-video w-full'
           }`}>
-            {/* User's Scene Storyboard Slides (GDP 1–5 JPG Images) */}
+            {/* Scene Storyboard Slides (GDP 1–5 JPG Images) */}
             <StoryboardScene
               slideIndex={activeSlideIndex}
               imageUrl={activeSlideUrl}
               speaker={activeLine.speaker}
               isPlaying={isPlaying}
               lineIndex={currentLineIndex}
-              onUploadFile={handleUploadSingleSceneImage}
-              onUploadBatch={handleIncomingImageFiles}
-              onOpenManager={() => setShowImageManager(true)}
+              onSelectFiles={handleDropFiles}
             />
 
             {/* Initial Start Overlay (Compact Proportion) */}
